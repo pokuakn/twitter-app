@@ -18,7 +18,7 @@ This app what built in Nodejs and depends on:
 
 <ul>
   <li>Express for the server.</li>
- <li> <li>socket.io for realtime websockets.</li>
+ <li> socket.io for realtime websockets.</li>
  <li>Twitter API for live data.</li>
  <li>Emoji Regex Datasource</li>
   </ul>
