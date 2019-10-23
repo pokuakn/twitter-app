@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Twitter Stream Statistics</title>
+    <meta name="description" content="Twitter Sample Tweets" />
+    <link
+      id="favicon"
+      rel="icon"
+      href="https://glitch.com/edit/favicon-app.ico"
+      type="image/x-icon"
+    />
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- import the webpage's stylesheet -->
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <div class="container mt-5">
+      <div class="row border bg-dark">
+        <div class="col-4 border-right text-light">
+          ITEM
+        </div>
+        <div class="col-3 text-light">
+          RESULT
+        </div>
+      </div>
+      <div class="row border border-top-0">
+        <div class="col-4 border-right">
+          Total number of tweets received
+        </div>
+        <div class="col-3 total-tweets text-success"></div>
+      </div>
+
+      <div class="row border border-top-0">
+        <div class="col-4 border-right">
+          Average tweets per hour/minute/second
+        </div>
+        <div class="col-3 tweet-rate text-success"></div>
+      </div>
+      <div class="row border border-top-0">
+        <div class="col-4 border-right">
+          Top emojis in tweets
+        </div>
+        <div class="col-3 top-emojis"></div>
+      </div>
+      <div class="row border border-top-0">
+        <div class="col-4 border-right">
+          Percent of tweets that contains emojis
+        </div>
+        <div class="col-3 percent-emoji text-success"></div>
+      </div>
+      <div class="row border border-top-0">
+        <div class="col-4 border-right">
+          Top hashtags
+        </div>
+        <div class="col-3 top-tags text-success"></div>
+      </div>
+      <div class="row border border-top-0">
+        <div class="col-4 border-right">
+          Percent of tweets that contain a url
+        </div>
+        <div class="col-3 percent-urls text-success"></div>
+      </div>
+      <div class="row border border-top-0">
+        <div class="col-4 border-right">
+          Percent of tweets that contain a photo url (pic.twitter.com,
+          pbs.twimg.com, or instagram)
+        </div>
+        <div class="col-3 percent-photo-urls text-success"></div>
+      </div>
+      <div class="row border border-top-0">
+        <div class="col-4 border-right ">
+          Top domains of urls in tweets
+        </div>
+        <div class="col-3 top-domains text-success"></div>
+      </div>
+    </div>
+    <script
+      src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+      integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+      integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+      integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"
+      integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I="
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script>
+      const socket = io();
+
+      // Top count variables
+      let tweets = [];
+      let hashtags = [];
+      let urls = [];
+      let emojis = [];
+
+      // % Variables
+      let hasPhotoUrl = 0;
+      let hasUrl = 0;
+      let hasEmoji = 0;
+
+      socket.on("connect", function(data) {
+        console.log("connected");
+      });
+
+      socket.on("startTime", function(datetime) {
+        const endTime = new Date();
+        const startTime = new Date(datetime);
+        const timeLapseMiliseconds = endTime.getTime() - startTime.getTime();
+
+        if (timeLapseMiliseconds > 0) {
+          const tweetsInSecond = Math.round(1000 / timeLapseMiliseconds);
+          const TweetsInMinute = Math.round((1000 * 60) / timeLapseMiliseconds);
+          const TweetsInHour = Math.round(
+            (1000 * 60 * 60) / timeLapseMiliseconds
+          );
+
+          $(".tweet-rate").text(
+            TweetsInHour + " / " + TweetsInMinute + " / " + tweetsInSecond
+          );
+        }
+      });
+
+      // Runs Tweet Stream
+      socket.on("tweet", function(opts) {
+        const tweet = opts.t;
+        tweets.push(tweet.text);
+
+        if (tweet.entities.hashtags.length > 0)
+          hashtags = [].concat(...hashtags, tweet.entities.hashtags);
+
+        if (tweet.entities.urls.length > 0)
+          urls = [].concat(...urls, tweet.entities.urls);
+
+        if (tweet.entities.emojis.length > 0)
+          emojis = [].concat(...emojis, tweet.entities.emojis);
+
+        totalTweetsReceived();
+
+        topHashTags(hashtags);
+        topDomains(urls);
+        topEmojis(emojis);
+
+        percentTweetsWithUrls(tweet.entities);
+        percentTweetsWithPhotoUrls(tweet.entities);
+        percentTweetsWithEmojis(tweet.entities);
+      });
+
+      function totalTweetsReceived() {
+        const total = tweets.length;
+        $(".total-tweets").text(total);
+      }
+
+      function topHashTags(tags) {
+        let ht = [];
+        for (const tag of tags) {
+          ht.push(tag.text);
+        }
+        const toptags = mostFrequentItems(ht);
+        $(".top-tags").text(toptags);
+      }
+
+      function topEmojis(emojis) {
+        let e = [];
+        for (const emo of emojis) {
+          e.push(emo.emoji);
+        }
+        const topemojis = mostFrequentItems(e);
+        $(".top-emojis").text(topemojis);
+      }
+
+      function topDomains(urls) {
+        const regex = /^(https?|ftp):\/\//;
+        let domains = [];
+        for (const url of urls) {
+          let domain = url.expanded_url.replace(regex, "");
+          domain = domain.split("/")[0];
+          domains.push(domain);
+        }
+        const topdomains = mostFrequentItems(domains);
+        $(".top-domains").text(topdomains);
+      }
+
+      function percentTweetsWithUrls(entity) {
+        for (const u of entity.urls) {
+          hasUrl++;
+        }
+        const percentUrls = (hasUrl / tweets.length) * 100;
+        $(".percent-urls").text(percentUrls.toFixed(2) + "%");
+      }
+
+      function percentTweetsWithPhotoUrls(entity) {
+        if ("media" in entity) {
+          for (const m of entity.media) {
+            if (m.type == "photo") hasPhotoUrl++;
+          }
+        }
+        const percentPhotoUrls = (hasPhotoUrl / tweets.length) * 100;
+        $(".percent-photo-urls").text(percentPhotoUrls.toFixed(2) + "%");
+      }
+
+      function percentTweetsWithEmojis(entity) {
+        for (const e of entity.emojis) {
+          hasEmoji++;
+        }
+        const percentEmojis = (hasEmoji / tweets.length) * 100;
+        $(".percent-emoji").text(percentEmojis.toFixed(2) + "%");
+      }
+
+      function mostFrequentItems(arr) {
+        return arr
+          .sort(
+            (a, b) =>
+              arr.filter(v => v === a).length - arr.filter(v => v === b).length
+          )
+          .pop();
+      }
+    </script>
+  </body>
+</html>
