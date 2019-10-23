@@ -14,7 +14,9 @@ Top domains of urls in tweets
 
 This app what built in Nodejs and depends on:
 
-Express for the server.
+<ul>
+  <li>Express for the server</li>
 socket.io for realtime websockets.
 Twitter API for live data.
 Emoji Regex Datasource
+  </ul>
