@@ -7,10 +7,10 @@ const emojiRegex = require("emoji-regex");
 const regex = emojiRegex();
 
 const T = new Twit({
-  consumer_key: "vxgQj6qQoo4vTxIFh543u0Vsj",
-  consumer_secret: "8KMkekXVJyfpWgGOgMkrS6Uag5GYzzHZm40imS9vL7vQsSGrpw",
-  access_token: "851163901-EWCRf28JJ4PCpoRSdC6yinajdMcjxMAga3lFTHcl",
-  access_token_secret: "xTKiqEKEa40zfcKm3BrA0H3fZG02uizshZeoZnKuZ7gYt",
+  consumer_key: "",
+  consumer_secret: "",
+  access_token: "",
+  access_token_secret: "",
   timeout_ms: 60 * 1000, // optional HTTP request timeout to apply to all requests.
   strictSSL: true // optional - requires SSL certificates to be valid.
 });
