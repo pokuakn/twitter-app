@@ -1,1 +1,7 @@
 /node_modules
+/worker
+twitter.js
+socket.js
+test.js
+test.json
+.env
